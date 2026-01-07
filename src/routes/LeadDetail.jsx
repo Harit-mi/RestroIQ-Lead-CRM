@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getLead, getFollowUps, addFollowUp } from '../lib/db';
+import { getLead, getFollowUps, addFollowUp, archiveLead } from '../lib/db';
 import { format } from 'date-fns';
-import { Phone, MapPin, User, Calendar, ArrowLeft } from 'lucide-react';
+import { Phone, MapPin, User, Calendar, ArrowLeft, Trash2 } from 'lucide-react';
 
 export default function LeadDetail() {
     const { id } = useParams();
@@ -24,8 +24,8 @@ export default function LeadDetail() {
     const loadData = async () => {
         setLoading(true);
         const l = await getLead(id);
-        if (!l) {
-            alert("Lead not found");
+        if (!l || l.isArchived) { // Handle archived leads
+            alert("Lead not found or archived");
             navigate('/leads');
             return;
         }
@@ -38,6 +38,13 @@ export default function LeadDetail() {
         setFuStage(l.leadStage);
         setFuNextDate(new Date(Date.now() + 86400000).toISOString().split('T')[0]); // Default next day
         setLoading(false);
+    };
+
+    const handleArchive = async () => {
+        if (window.confirm('Are you sure you want to delete this lead? It will be archived.')) {
+            await archiveLead(lead.leadId);
+            navigate('/leads');
+        }
     };
 
     // Drip sequence logic
@@ -103,18 +110,23 @@ export default function LeadDetail() {
 
             {/* Header Info */}
             <div className="card" style={{ marginBottom: 'var(--space-6)' }}>
-                <div className="flex justify-between items-start flex-col gap-4">
-                    <div>
-                        <h1 style={{ marginBottom: 'var(--space-2)' }}>{lead.restaurantName}</h1>
-                        <div className="flex gap-2">
-                            <span className={`badge badge-${lead.currentStatus.toLowerCase().replace(/ /g, '-')}`}>{lead.currentStatus}</span>
-                            <span className={`badge badge-${lead.leadStage.toLowerCase()}`}>{lead.leadStage}</span>
+                <div className="flex flex-col gap-4">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <h1 style={{ marginBottom: 'var(--space-2)' }}>{lead.restaurantName}</h1>
+                            <div className="flex gap-2">
+                                <span className={`badge badge-${lead.currentStatus.toLowerCase().replace(/ /g, '-')}`}>{lead.currentStatus}</span>
+                                <span className={`badge badge-${lead.leadStage.toLowerCase()}`}>{lead.leadStage}</span>
+                            </div>
                         </div>
+                        <button onClick={handleArchive} className="btn btn-secondary" style={{ borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}>
+                            <Trash2 size={18} /> Archive
+                        </button>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', width: '100%', gap: 'var(--space-4)', marginTop: 'var(--space-4)' }}>
                         <div className="flex items-center gap-2 text-muted"> <User size={16} /> {lead.contactPerson || 'No Contact'} </div>
-                        <div className="flex items-center gap-2 text-muted"> <Phone size={16} /> <a href={`tel:${lead.phone}`}>{lead.phone}</a> </div>
+                        <div className="flex items-center gap-2 text-muted"> <Phone size={16} /> <a href={`tel:${lead.phone} `}>{lead.phone}</a> </div>
                         <div className="flex items-center gap-2 text-muted"> <MapPin size={16} /> {lead.city || 'Unknown City'} </div>
                         <div className="flex items-center gap-2 text-muted"> <Calendar size={16} /> Created: {format(new Date(lead.createdAt), 'MMM d, yyyy')} </div>
                         <div className="flex items-center gap-2 text-muted"> <Calendar size={16} /> Next Call: {lead.nextFollowUpDate ? format(new Date(lead.nextFollowUpDate), 'MMM d, yyyy') : 'None'} </div>
@@ -192,6 +204,6 @@ export default function LeadDetail() {
                 </div>
 
             </div>
-        </div>
+        </div >
     );
 }
