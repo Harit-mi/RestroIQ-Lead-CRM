@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getLeads } from '../lib/db';
+import { getLeads, deleteLead } from '../lib/db';
 import { format } from 'date-fns';
+import { Trash2 } from 'lucide-react';
 
 export default function Leads() {
     const [leads, setLeads] = useState([]);
@@ -11,6 +12,7 @@ export default function Leads() {
         stage: '',
         search: ''
     });
+    const [hoveredRow, setHoveredRow] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -54,6 +56,21 @@ export default function Leads() {
 
     const handleFilterChange = (e) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });
+    };
+
+    const handleDelete = async (e, leadId, restaurantName) => {
+        e.stopPropagation(); // Prevent row click navigation
+
+        if (window.confirm(`Are you sure you want to delete "${restaurantName}"? This action cannot be undone.`)) {
+            try {
+                await deleteLead(leadId);
+                // Refresh the leads list
+                loadLeads();
+            } catch (error) {
+                console.error('Error deleting lead:', error);
+                alert('Failed to delete lead. Please try again.');
+            }
+        }
     };
 
     const stageColors = {
@@ -130,11 +147,24 @@ export default function Leads() {
                                 <th>Status</th>
                                 <th>Stage</th>
                                 <th>Next Follow-up</th>
+                                <th style={{ width: '60px' }}></th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredLeads.map(lead => (
-                                <tr key={lead.leadId} onClick={() => navigate(`/leads/${lead.leadId}`)} style={{ cursor: 'pointer', transition: 'background-color 0.1s' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                <tr
+                                    key={lead.leadId}
+                                    onClick={() => navigate(`/leads/${lead.leadId}`)}
+                                    style={{ cursor: 'pointer', transition: 'background-color 0.1s' }}
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.backgroundColor = '#f8fafc';
+                                        setHoveredRow(lead.leadId);
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.backgroundColor = 'transparent';
+                                        setHoveredRow(null);
+                                    }}
+                                >
                                     <td style={{ fontWeight: 500 }}>{lead.restaurantName}</td>
                                     <td>{lead.phone}</td>
                                     <td>{lead.city}</td>
@@ -151,11 +181,32 @@ export default function Leads() {
                                     <td>
                                         {lead.nextFollowUpDate ? format(new Date(lead.nextFollowUpDate), 'MMM d, yyyy') : '-'}
                                     </td>
+                                    <td style={{ textAlign: 'center' }}>
+                                        <button
+                                            onClick={(e) => handleDelete(e, lead.leadId, lead.restaurantName)}
+                                            className="btn-icon-delete"
+                                            style={{
+                                                opacity: hoveredRow === lead.leadId ? 1 : 0,
+                                                transition: 'opacity 0.2s, background-color 0.2s',
+                                                padding: '6px',
+                                                borderRadius: '6px',
+                                                border: 'none',
+                                                background: 'transparent',
+                                                cursor: 'pointer',
+                                                color: '#ef4444'
+                                            }}
+                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
+                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                            title="Delete lead"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </td>
                                 </tr>
                             ))}
                             {filteredLeads.length === 0 && (
                                 <tr>
-                                    <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
+                                    <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
                                         No leads found.
                                     </td>
                                 </tr>

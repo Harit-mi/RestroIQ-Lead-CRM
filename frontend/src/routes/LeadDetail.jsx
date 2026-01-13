@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getLead, getFollowUps, addFollowUp } from '../lib/db';
+import { getLead, getFollowUps, addFollowUp, deleteLead } from '../lib/db';
 import { format } from 'date-fns';
-import { Phone, MapPin, User, Calendar, ArrowLeft } from 'lucide-react';
+import { Phone, MapPin, User, Calendar, ArrowLeft, Trash2 } from 'lucide-react';
 
 export default function LeadDetail() {
     const { id } = useParams();
@@ -93,13 +93,31 @@ export default function LeadDetail() {
         loadData(); // Refresh to show new history and updated lead header
     };
 
+    const handleDelete = async () => {
+        if (!window.confirm(`Are you sure you want to delete "${lead.restaurantName}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await deleteLead(lead.leadId);
+            navigate('/leads');
+        } catch (error) {
+            alert('Failed to delete lead. Please try again.');
+        }
+    };
+
     if (loading || !lead) return <div className="container">Loading...</div>;
 
     return (
         <div className="container">
-            <button onClick={() => navigate(-1)} className="btn btn-secondary btn-sm" style={{ marginBottom: 'var(--space-4)', border: 'none', paddingLeft: 0 }}>
-                <ArrowLeft size={16} /> Back
-            </button>
+            <div className="flex justify-between items-center" style={{ marginBottom: 'var(--space-4)' }}>
+                <button onClick={() => navigate(-1)} className="btn btn-secondary btn-sm" style={{ border: 'none', paddingLeft: 0 }}>
+                    <ArrowLeft size={16} /> Back
+                </button>
+                <button onClick={handleDelete} className="btn" style={{ backgroundColor: '#ef4444', color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Trash2 size={16} /> Delete Lead
+                </button>
+            </div>
 
             {/* Header Info */}
             <div className="card" style={{ marginBottom: 'var(--space-6)' }}>

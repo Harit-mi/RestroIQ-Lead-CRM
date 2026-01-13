@@ -1,16 +1,73 @@
-# React + Vite
+# RestroIQ Lead CRM
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A lead management system for restaurant sales teams, built with React and Express.js.
 
-Currently, two official plugins are available:
+## Project Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```
+RestroIQ-Lead-CRM/
+├── frontend/          # React + Vite frontend
+│   ├── src/
+│   │   ├── components/
+│   │   ├── routes/
+│   │   └── lib/
+│   └── package.json
+├── backend/           # Express.js backend
+│   ├── routes/
+│   ├── lib/
+│   └── package.json
+└── README.md
+```
 
-## React Compiler
+## Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Prerequisites
+- Node.js 18+
+- Supabase account with configured database
 
-## Expanding the ESLint configuration
+### 1. Backend Setup
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+cd backend
+npm install
+cp .env.example .env
+# Add your Supabase credentials to .env
+npm run dev
+```
+
+### 2. Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs on `http://localhost:5173` and the backend on `http://localhost:5000`.
+
+## Environment Variables
+
+### Backend (`backend/.env`)
+| Variable | Description |
+|----------|-------------|
+| `SUPABASE_URL` | Your Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | Supabase service role key |
+| `PORT` | Server port (default: 5000) |
+| `FRONTEND_URL` | Frontend URL for CORS |
+
+### Frontend (`frontend/.env`)
+| Variable | Description |
+|----------|-------------|
+| `VITE_API_URL` | Backend API URL |
+
+## API Documentation
+
+See [backend/README.md](backend/README.md) for full API documentation.
+
+## Tech Stack
+
+**Frontend:** React 19, Vite, React Router, Lucide Icons
+
+**Backend:** Express.js, Supabase
+
+**Database:** PostgreSQL (via Supabase)
